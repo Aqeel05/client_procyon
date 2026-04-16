@@ -1,97 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-
-// ─── SEED DATA ────────────────────────────────────────────────────────────────
-
-const SEED_CLIENTS = [
-  { id: "c1", company: "Halliburton", contact: "Rui Li", role: "Procurement Manager", email: "rui.li@halliburton.com", phone: "65 6551 2200" },
-  { id: "c2", company: "Halliburton US", contact: "Celeste Koon", role: "Global Business Lines Marketing", email: "celeste.koon@halliburton.com", phone: "1 281 5753000" },
-  { id: "c3", company: "Rystad Energies", contact: "Su Wern Teyo", role: "Senior Marketing Manager", email: "suwern.teyo@rystadenergy.com", phone: "60 34 065 2853" },
-  { id: "c4", company: "Rystad Energies", contact: "Cherie Lim", role: "Regional Marketing Head", email: "cherie.lim@rystadenergy.com", phone: "65 800 852 5053" },
-  { id: "c5", company: "Gentari", contact: "Farah Nini Norudin", role: "Communications", email: "", phone: "6012 8181 121" },
-  { id: "c6", company: "SLB", contact: "Suzila Mohamed Yusof", role: "Marketing & Communications Manager", email: "suzila@slb.com", phone: "603-2166 7788" },
-  { id: "c7", company: "Hibiscus Petroleum", contact: "Fairuz Fuad", role: "Business Development", email: "fairuz.fuad@hibiscuspetroleum.com", phone: "603-2092 1300" },
-  { id: "c8", company: "Vantis Energy", contact: "Hanin Sabrina Husairi", role: "Communications", email: "corpcomms@vantrisenergy.com", phone: "(6)03-64159999" },
-];
-
-const SEED_SG = [
-  { id: "sg1", name: "GITEX ASIA x AI Everything Singapore 2026", dates: "Apr 9–10, 2026", venue: "Marina Bay Sands", sector: "Technology", region: "singapore" },
-  { id: "sg2", name: "World Ageing Festival 2026", dates: "Apr 14–15, 2026", venue: "Marina Bay Sands", sector: "Healthcare", region: "singapore" },
-  { id: "sg3", name: "BEAUTY ASIA Singapore 2026", dates: "Apr 20–22, 2026", venue: "Suntec Singapore", sector: "Beauty", region: "singapore" },
-  { id: "sg4", name: "FHA 2026 – Food & Hospitality Asia", dates: "Apr 21–24, 2026", venue: "Singapore EXPO", sector: "Food & Beverage", region: "singapore" },
-  { id: "sg5", name: "HealthTechX Asia", dates: "May 6–7, 2026", venue: "Marina Bay Sands", sector: "Healthcare", region: "singapore" },
-  { id: "sg6", name: "TFWA Asia Pacific Exhibition & Conference 2026", dates: "May 10–14, 2026", venue: "Marina Bay Sands", sector: "Retail", region: "singapore" },
-  { id: "sg7", name: "CeMAT SOUTHEAST ASIA 2026", dates: "May 12–14, 2026", venue: "Singapore EXPO", sector: "Logistics", region: "singapore" },
-  { id: "sg8", name: "Asia Tech X (ATX) / AI Summit Singapore 2026", dates: "May 20–22, 2026", venue: "Singapore EXPO", sector: "Technology", region: "singapore" },
-  { id: "sg9", name: "NRF 2026 – Retail's Big Show Asia Pacific", dates: "Jun 2–4, 2026", venue: "Marina Bay Sands", sector: "Retail", region: "singapore" },
-  { id: "sg10", name: "Expo Real Asia Pacific", dates: "Jun 15–17, 2026", venue: "Suntec Singapore", sector: "Real Estate", region: "singapore" },
-  { id: "sg11", name: "SIWW 2026 – Singapore International Water Week", dates: "Jun 15–18, 2026", venue: "Marina Bay Sands", sector: "Energy", region: "singapore" },
-  { id: "sg12", name: "Mining Asia Conference & Expo 2026", dates: "Jun 23–24, 2026", venue: "Marina Bay Sands", sector: "Energy", region: "singapore" },
-  { id: "sg13", name: "Smart Health Asia", dates: "Jul 1–2, 2026", venue: "Marina Bay Sands", sector: "Healthcare", region: "singapore" },
-  { id: "sg14", name: "SIJE 2026 – Singapore International Jewelry Expo", dates: "Jul 9–12, 2026", venue: "Marina Bay Sands", sector: "Jewellery", region: "singapore" },
-  { id: "sg15", name: "SIGEP ASIA 2026", dates: "Jul 15–17, 2026", venue: "Marina Bay Sands", sector: "Food & Beverage", region: "singapore" },
-  { id: "sg16", name: "SFDA 2026 – Speciality Food & Drinks Asia", dates: "Jul 15–17, 2026", venue: "Suntec Singapore", sector: "Food & Beverage", region: "singapore" },
-  { id: "sg17", name: "Restaurant Asia 2026", dates: "Jul 15–17, 2026", venue: "Suntec Singapore", sector: "Food & Beverage", region: "singapore" },
-  { id: "sg18", name: "FLAsia 2026 – Franchising & Licensing Asia", dates: "Aug 13–15, 2026", venue: "Marina Bay Sands", sector: "Retail", region: "singapore" },
-  { id: "sg19", name: "BEX Asia 2026 – Built Environment Expo", dates: "Sep 2–4, 2026", venue: "Marina Bay Sands", sector: "Construction", region: "singapore" },
-  { id: "sg20", name: "Seafood Expo Asia 2026", dates: "Sep 2–4, 2026", venue: "Sands Expo", sector: "Food & Beverage", region: "singapore" },
-  { id: "sg21", name: "REHACARE ASIA 2026", dates: "Sep 9–11, 2026", venue: "Singapore EXPO", sector: "Healthcare", region: "singapore" },
-  { id: "sg22", name: "MEDICAL FAIR ASIA 2026", dates: "Sep 9–11, 2026", venue: "Marina Bay Sands", sector: "Healthcare", region: "singapore" },
-  { id: "sg23", name: "MRO Asia Pacific", dates: "Sep 22–24, 2026", venue: "Singapore Expo", sector: "Aviation", region: "singapore" },
-  { id: "sg24", name: "Passenger Terminal Expo Asia 2026", dates: "Sep 23–24, 2026", venue: "Marina Bay Sands", sector: "Aviation", region: "singapore" },
-  { id: "sg25", name: "Big Data & AI World 2026", dates: "Sep 29–30, 2026", venue: "Marina Bay Sands", sector: "Technology", region: "singapore" },
-  { id: "sg26", name: "Tech Week Singapore", dates: "Sep 29–30, 2026", venue: "Marina Bay Sands", sector: "Technology", region: "singapore" },
-  { id: "sg27", name: "Token 2049", dates: "Oct 7–8, 2026", venue: "Marina Bay Sands", sector: "Finance", region: "singapore" },
-  { id: "sg28", name: "ITAP 2026 – Industrial Transformation Asia Pacific", dates: "Oct 21–23, 2026", venue: "Singapore EXPO", sector: "Manufacturing", region: "singapore" },
-  { id: "sg29", name: "Food Japan 2026", dates: "Oct 22–24, 2026", venue: "Suntec Singapore", sector: "Food & Beverage", region: "singapore" },
-  { id: "sg30", name: "Singapore Fintech Festival", dates: "Nov 18–20, 2026", venue: "Singapore Expo", sector: "Finance", region: "singapore" },
-  { id: "sg31", name: "OSEA 2026 – Offshore Energy Week", dates: "Nov 24–26, 2026", venue: "Marina Bay Sands", sector: "Energy", region: "singapore" },
-  { id: "sg32", name: "ATF 2026 – Asia TV Forum & Market", dates: "Dec 2–4, 2026", venue: "Marina Bay Sands", sector: "Media", region: "singapore" },
-  { id: "sg33", name: "Sea Asia 2027", dates: "Mar 16–18, 2027", venue: "Marina Bay Sands", sector: "Maritime", region: "singapore" },
-  { id: "sg34", name: "IASEA 2027 – inter airport Southeast Asia", dates: "Mar 23–25, 2027", venue: "Marina Bay Sands", sector: "Aviation", region: "singapore" },
-  { id: "sg35", name: "IMDEX Asia 2027 – Naval Defence & Maritime Security", dates: "May 5–7, 2027", venue: "Changi Exhibition Centre", sector: "Defence", region: "singapore" },
-  { id: "sg36", name: "InnoTrans Asia 2027", dates: "Sep 7–9, 2027", venue: "Singapore EXPO", sector: "Transport", region: "singapore" },
-];
-
-const SEED_MY = [
-  { id: "my1", name: "Solar & Storage Live Malaysia", dates: "Apr 8–9, 2026", venue: "MITEC, Kuala Lumpur", sector: "Energy", region: "malaysia" },
-  { id: "my2", name: "NATSEC Asia 2026", dates: "Apr 20–23, 2026", venue: "MITEC, Kuala Lumpur", sector: "Defence", region: "malaysia" },
-  { id: "my3", name: "Defence Services Asia (DSA 2026)", dates: "Apr 23–26, 2026", venue: "MITEC, Kuala Lumpur", sector: "Defence", region: "malaysia" },
-  { id: "my4", name: "SEMICON Southeast Asia 2026", dates: "May 5–7, 2026", venue: "MITEC, Kuala Lumpur", sector: "Technology", region: "malaysia" },
-  { id: "my5", name: "Automechanika Kuala Lumpur 2026", dates: "May 14–16, 2026", venue: "KLCC", sector: "Automotive", region: "malaysia" },
-  { id: "my6", name: "ENERtec Asia 2026", dates: "Jun 3–5, 2026", venue: "KLCC", sector: "Energy", region: "malaysia" },
-  { id: "my7", name: "ASEAN Solar Expo 2026", dates: "Jun 3–5, 2026", venue: "MITEC, Kuala Lumpur", sector: "Energy", region: "malaysia" },
-  { id: "my8", name: "Sabah Oil, Gas & Energy Conference (SOGCE)", dates: "Jun 25–26, 2026", venue: "Sabah ICC, Kota Kinabalu", sector: "Energy", region: "malaysia" },
-  { id: "my9", name: "Asean Ports and Logistics 2026", dates: "Jul 7–9, 2026", venue: "Sofitel KL Damansara", sector: "Logistics", region: "malaysia" },
-  { id: "my10", name: "APHM Healthcare Conference & Exhibition", dates: "Jul 28–30, 2026", venue: "KLCC", sector: "Healthcare", region: "malaysia" },
-  { id: "my11", name: "AGRI MALAYSIA", dates: "Sep 10–12, 2026", venue: "MITEC, Kuala Lumpur", sector: "Agriculture", region: "malaysia" },
-  { id: "my12", name: "BEAUTYEXPO Malaysia", dates: "Sep–Oct 2026", venue: "KLCC", sector: "Beauty", region: "malaysia" },
-  { id: "my13", name: "MIMEX – Malaysia International Maritime Expo", dates: "Nov 1, 2026", venue: "KLCC", sector: "Maritime", region: "malaysia" },
-  { id: "my14", name: "EVM ASIA – Electric & Hybrid Vehicles", dates: "Nov 10–12, 2026", venue: "MITEC, Kuala Lumpur", sector: "Automotive", region: "malaysia" },
-  { id: "my15", name: "CEM ASIA", dates: "Nov 17–19, 2026", venue: "KLCC", sector: "Healthcare", region: "malaysia" },
-  { id: "my16", name: "SIGGRAPH Asia", dates: "Dec 1–4, 2026", venue: "KLCC", sector: "Technology", region: "malaysia" },
-  { id: "my17", name: "IEW 2027 – International Energy Week Sarawak", dates: "Jul 6–8, 2027", venue: "Borneo Convention Centre, Kuching", sector: "Energy", region: "malaysia" },
-];
-
-const SEED_JP = [
-  { id: "jp1", name: "Sea Japan 2026 – International Shipbuilding & Marine Engineering", dates: "Apr 22–24, 2026", venue: "Tokyo Big Sight", sector: "Maritime", region: "japan" },
-  { id: "jp2", name: "Medtec Japan 2026 – Medical Device Development", dates: "Apr 21–23, 2026", venue: "Tokyo Big Sight", sector: "Healthcare", region: "japan" },
-  { id: "jp3", name: "Japan Energy Summit & Exhibition 2026", dates: "May 26–28, 2026", venue: "Tokyo Big Sight", sector: "Energy", region: "japan" },
-  { id: "jp4", name: "Factory Innovation Week Kansai 2026", dates: "May 13–15, 2026", venue: "INTEX Osaka", sector: "Manufacturing", region: "japan" },
-  { id: "jp5", name: "FOOMA Japan 2026 – Food Machinery & Technology", dates: "Jun 2–5, 2026", venue: "Tokyo Big Sight", sector: "Food & Beverage", region: "japan" },
-  { id: "jp6", name: "TECHNO-FRONTIER 2026 – Motion, Power & Thermal", dates: "Jul 15–17, 2026", venue: "Tokyo Big Sight", sector: "Manufacturing", region: "japan" },
-  { id: "jp7", name: "Kanto Grand Fair 2026 – Industrial Technology", dates: "Jul 9–10, 2026", venue: "Makuhari Messe, Chiba", sector: "Manufacturing", region: "japan" },
-  { id: "jp8", name: "JASIS 2026 – Japan Analytical & Scientific Instruments", dates: "Sep 2–4, 2026", venue: "Makuhari Messe, Chiba", sector: "Technology", region: "japan" },
-  { id: "jp9", name: "Logis-Tech Tokyo 2026 – International Logistics Exhibition", dates: "Sep 8–11, 2026", venue: "Tokyo Big Sight", sector: "Logistics", region: "japan" },
-  { id: "jp10", name: "Factory Innovation Week Autumn 2026", dates: "Sep 9–11, 2026", venue: "Makuhari Messe, Chiba", sector: "Manufacturing", region: "japan" },
-  { id: "jp11", name: "Photonix Tokyo 2026 – Laser & Optics Expo", dates: "Sep 30–Oct 2, 2026", venue: "Makuhari Messe, Chiba", sector: "Technology", region: "japan" },
-  { id: "jp12", name: "Manufacturing World Osaka 2026 – 29th Edition", dates: "Oct 7–9, 2026", venue: "INTEX Osaka", sector: "Manufacturing", region: "japan" },
-  { id: "jp13", name: "CEATEC 2026 – Combined Exhibition of Advanced Technologies", dates: "Oct 13–16, 2026", venue: "Makuhari Messe, Chiba", sector: "Technology", region: "japan" },
-  { id: "jp14", name: "JIMTOF 2026 – Japan International Machine Tool Fair", dates: "Nov 2026", venue: "Tokyo Big Sight", sector: "Manufacturing", region: "japan" },
-  { id: "jp15", name: "InterBEE 2026 – International Broadcast Equipment Exhibition", dates: "Nov 2026", venue: "Makuhari Messe, Chiba", sector: "Media", region: "japan" },
-  { id: "jp16", name: "Manufacturing World Fukuoka 2026", dates: "Dec 2–4, 2026", venue: "Marine Messe Fukuoka", sector: "Manufacturing", region: "japan" },
-  { id: "jp17", name: "Japan Energy Summit & Exhibition 2027", dates: "May 26–28, 2027", venue: "Tokyo Big Sight", sector: "Energy", region: "japan" },
-  { id: "jp18", name: "Manufacturing World Nagoya 2027", dates: "Apr 7–9, 2027", venue: "Port Messe Nagoya", sector: "Manufacturing", region: "japan" },
-];
+import { supabase } from "./supabaseClient";
 
 const SECTOR_COLORS = {
   "Energy": "#0F6E56", "Defence": "#534AB7", "Technology": "#185FA5",
@@ -117,24 +25,16 @@ function getInitials(contact) {
 
 function uid() { return Math.random().toString(36).slice(2, 9); }
 
-function loadStored(key, fallback) {
-  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
-  catch { return fallback; }
-}
-
 // ─── API ──────────────────────────────────────────────────────────────────────
 
 const COLD_AGENT_ID = "agent_011CZwxfXbUhcTxgcg35dFL4";
 const WARM_AGENT_ID = "agent_011Ca1x9MAbi3XMWR6pUsv9C";
 
 async function callAgent(agentId, userMessage) {
-  const r = await fetch(`https://api.anthropic.com/v1/agents/${agentId}/messages`, {
+  const r = await fetch("/api/agent", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      max_tokens: 1000,
-      messages: [{ role: "user", content: userMessage }],
-    }),
+    body: JSON.stringify({ agentId, userMessage }),
   });
   const d = await r.json();
   return (d.content || []).filter(b => b.type === "text").map(b => b.text).join("\n");
@@ -491,12 +391,21 @@ function EventCard({ event, selected, onSelect, onEdit, onDelete }) {
 export default function App() {
   const [activeTab, setActiveTab] = useState("cold");
 
-  // Persisted state
-  const [clients, setClients]   = useState(() => loadStored("pc_clients", SEED_CLIENTS));
-  const [events,  setEvents]    = useState(() => loadStored("pc_events",  [...SEED_SG, ...SEED_MY, ...SEED_JP]));
+  // Database state
+  const [clients, setClients] = useState([]);
+  const [events,  setEvents]  = useState([]);
 
-  useEffect(() => { try { localStorage.setItem("pc_clients", JSON.stringify(clients)); } catch {} }, [clients]);
-  useEffect(() => { try { localStorage.setItem("pc_events",  JSON.stringify(events));  } catch {} }, [events]);
+  useEffect(() => {
+    async function loadData() {
+      const [{ data: c }, { data: e }] = await Promise.all([
+        supabase.from("clients").select("*").order("created_at"),
+        supabase.from("events").select("*").order("created_at"),
+      ]);
+      setClients(c || []);
+      setEvents(e || []);
+    }
+    loadData();
+  }, []);
 
   // Cold state
   const [coldProspect, setColdProspect] = useState("");
@@ -527,20 +436,24 @@ export default function App() {
   // ── Client CRUD handlers ──
   function saveClient(c) {
     setClients(prev => prev.find(x=>x.id===c.id) ? prev.map(x=>x.id===c.id?c:x) : [...prev, c]);
+    supabase.from("clients").upsert(c);
   }
   function deleteClient(id) {
     setClients(prev => prev.filter(c=>c.id!==id));
     if (selectedClientId === id) setSelectedClientId(null);
+    supabase.from("clients").delete().eq("id", id);
   }
 
   // ── Event CRUD handlers ──
   function saveEvent(ev) {
     setEvents(prev => prev.find(x=>x.id===ev.id) ? prev.map(x=>x.id===ev.id?ev:x) : [...prev, ev]);
     if (ev.region !== eventRegion) setEventRegion(ev.region);
+    supabase.from("events").upsert(ev);
   }
   function deleteEvent(id) {
     setEvents(prev => prev.filter(e=>e.id!==id));
     if (selectedEventId === id) setSelectedEventId(null);
+    supabase.from("events").delete().eq("id", id);
   }
 
   // ── Selection toggles ──
