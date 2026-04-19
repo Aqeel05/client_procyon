@@ -9,8 +9,8 @@
 
 A React CRM for Procyon Creations (exhibition stand design, Qatar). Sales team uses it to manage clients and upcoming trade events, then generate outreach emails via two Claude AI agents:
 
-- **Cold Email Agent** (`agent_011CZwxfXbUhcTxgcg35dFL4`) — drafts first-contact cold emails
-- **Warm Email Agent** (`agent_011Ca1x9MAbi3XMWR6pUsv9C`) — drafts follow-up emails for existing clients
+- **Cold Email Agent** — drafts first-contact cold emails
+- **Warm Email Agent** — drafts follow-up emails for existing clients
 
 ---
 
@@ -182,7 +182,7 @@ Go to: https://vercel.com/syedaqeel5555-9604s-projects/client-procyon/settings/e
 
 Add all three vars (Production + Preview + Development):
 - `ANTHROPIC_API_KEY` — the Anthropic API key
-- `REACT_APP_SUPABASE_URL` — `https://uwxkoetlxmuhryrhshfh.supabase.co`
+- `REACT_APP_SUPABASE_URL` — the URL (see `.env.local`)
 - `REACT_APP_SUPABASE_ANON_KEY` — the anon key (see `.env.local`)
 
 After adding, **redeploy** from the Vercel dashboard.
