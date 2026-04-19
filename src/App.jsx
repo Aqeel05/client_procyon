@@ -27,17 +27,82 @@ function uid() { return Math.random().toString(36).slice(2, 9); }
 
 // ─── API ──────────────────────────────────────────────────────────────────────
 
-const COLD_AGENT_ID = "agent_011CZwxfXbUhcTxgcg35dFL4";
-const WARM_AGENT_ID = "agent_011Ca1x9MAbi3XMWR6pUsv9C";
-
-async function callAgent(agentId, userMessage) {
+async function callAgent(agentType, userMessage) {
   const r = await fetch("/api/agent", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ agentId, userMessage }),
+    body: JSON.stringify({ agentType, userMessage }),
   });
   const d = await r.json();
-  return (d.content || []).filter(b => b.type === "text").map(b => b.text).join("\n");
+  if (!r.ok) {
+    const msg = d.error || `Server error (HTTP ${r.status})`;
+    const detail = d.details?.error?.message || d.message || "";
+    throw new Error(detail ? `${msg}: ${detail}` : msg);
+  }
+  const text = (d.content || []).filter(b => b.type === "text").map(b => b.text).join("\n");
+  if (!text) throw new Error("No response content returned from agent.");
+  return text;
+}
+
+// ─── PIN SCREEN ───────────────────────────────────────────────────────────────
+
+const CORRECT_PIN = "1289";
+
+function PinScreen({ onUnlock }) {
+  const [pin, setPin] = useState("");
+  const [shake, setShake] = useState(false);
+  const [hov, setHov] = useState(null);
+
+  function handleDigit(d) {
+    if (pin.length >= 4) return;
+    const next = pin + d;
+    setPin(next);
+    if (next.length === 4) {
+      if (next === CORRECT_PIN) {
+        sessionStorage.setItem("procyon_auth", "1");
+        onUnlock();
+      } else {
+        setShake(true);
+        setTimeout(() => { setPin(""); setShake(false); }, 600);
+      }
+    }
+  }
+
+  function handleBack() { setPin(p => p.slice(0, -1)); }
+
+  const digits = ["1","2","3","4","5","6","7","8","9","","0","⌫"];
+
+  return (
+    <div style={{ position:"fixed", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", background:"var(--color-background-primary)", zIndex:9999 }}>
+      <style>{`@keyframes pinShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }`}</style>
+      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:32 }}>
+        <div style={{ width:8, height:8, borderRadius:"50%", background:"#111" }}/>
+        <span style={{ fontSize:12, color:"var(--color-text-tertiary)", letterSpacing:"0.12em", textTransform:"uppercase", fontFamily:"var(--font-sans)" }}>Procyon Creations</span>
+      </div>
+      <p style={{ fontSize:15, fontWeight:500, color:"var(--color-text-primary)", fontFamily:"var(--font-sans)", marginBottom:28, letterSpacing:"-0.01em" }}>Enter PIN to continue</p>
+      {/* Dots */}
+      <div style={{ display:"flex", gap:14, marginBottom:36, animation: shake ? "pinShake 0.5s ease" : "none" }}>
+        {[0,1,2,3].map(i => (
+          <div key={i} style={{ width:12, height:12, borderRadius:"50%", background: i < pin.length ? "var(--color-text-primary)" : "var(--color-border-secondary)", transition:"background 0.15s ease" }}/>
+        ))}
+      </div>
+      {/* Keypad */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 64px)", gap:10 }}>
+        {digits.map((d, i) => {
+          if (d === "") return <div key={i}/>;
+          const isBack = d === "⌫";
+          return (
+            <button key={i} onClick={() => isBack ? handleBack() : handleDigit(d)}
+              onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}
+              disabled={isBack && pin.length === 0}
+              style={{ width:64, height:64, borderRadius:16, border:"0.5px solid var(--color-border-tertiary)", background: hov === i ? "var(--color-background-secondary)" : "var(--color-background-primary)", color:"var(--color-text-primary)", fontSize: isBack ? 18 : 20, fontWeight:500, fontFamily:"var(--font-sans)", cursor: isBack && pin.length === 0 ? "default" : "pointer", opacity: isBack && pin.length === 0 ? 0.3 : 1, transition:"background 0.12s ease, transform 0.1s ease", transform: hov === i ? "scale(1.04)" : "scale(1)", outline:"none" }}>
+              {d}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 // ─── SMALL UI PRIMITIVES ──────────────────────────────────────────────────────
@@ -389,6 +454,7 @@ function EventCard({ event, selected, onSelect, onEdit, onDelete }) {
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 
 export default function App() {
+  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("procyon_auth") === "1");
   const [activeTab, setActiveTab] = useState("cold");
 
   // Database state
@@ -470,11 +536,11 @@ export default function App() {
     if (!coldProspect.trim() || coldLoading) return;
     setColdLoading(true); setColdResult(null); setColdError("");
     try {
-      const raw = await callAgent(COLD_AGENT_ID, `Research this prospect and write cold emails for Procyon Creations:\n\nCompany: ${coldProspect}${coldRole?`\nContact role: ${coldRole}`:""}${coldContext?`\n\nAdditional context: ${coldContext}`:""}\n\nSearch for recent news, exhibition activity, and brand positioning. Produce a thorough research analysis then craft three precisely targeted cold emails.`);
+      const raw = await callAgent("cold", `Research this prospect and write cold emails for Procyon Creations:\n\nCompany: ${coldProspect}${coldRole?`\nContact role: ${coldRole}`:""}${coldContext?`\n\nAdditional context: ${coldContext}`:""}\n\nSearch for recent news, exhibition activity, and brand positioning. Produce a thorough research analysis then craft three precisely targeted cold emails.`);
       const clean = raw.replace(/```json|```/g,"").trim();
       const s=clean.indexOf("{"), e=clean.lastIndexOf("}");
       setColdResult(JSON.parse(clean.slice(s,e+1)));
-    } catch { setColdError("Something went wrong — please try again."); }
+    } catch(err) { setColdError(err.message || "Something went wrong — please try again."); }
     setColdLoading(false);
   }
 
@@ -482,16 +548,18 @@ export default function App() {
     if (!selectedClient || !selectedEvent || warmLoading) return;
     setWarmLoading(true); setWarmResult(null); setWarmError("");
     try {
-      const raw = await callAgent(WARM_AGENT_ID, `Write warm outreach emails for this existing Procyon Creations client:\n\nCLIENT: ${selectedClient.company} — ${selectedClient.contact} (${selectedClient.role})\n\nEVENT: ${selectedEvent.name}\nDates: ${selectedEvent.dates}\nVenue: ${selectedEvent.venue}\nSector: ${selectedEvent.sector}\nRegion: ${REGION_CONFIG[selectedEvent.region]?.label||selectedEvent.region}${warmContext?`\n\nAdditional context: ${warmContext}`:""}${warmExampleEmail?`\n\nExample email to match in tone and style — use this as a stylistic reference, not a template to copy:\n\n${warmExampleEmail}`:""}\n\nExisting relationship. Write three warm email variants.`);
+      const raw = await callAgent("warm", `Write warm outreach emails for this existing Procyon Creations client:\n\nCLIENT: ${selectedClient.company} — ${selectedClient.contact} (${selectedClient.role})\n\nEVENT: ${selectedEvent.name}\nDates: ${selectedEvent.dates}\nVenue: ${selectedEvent.venue}\nSector: ${selectedEvent.sector}\nRegion: ${REGION_CONFIG[selectedEvent.region]?.label||selectedEvent.region}${warmContext?`\n\nAdditional context: ${warmContext}`:""}${warmExampleEmail?`\n\nExample email to match in tone and style — use this as a stylistic reference, not a template to copy:\n\n${warmExampleEmail}`:""}\n\nExisting relationship. Write three warm email variants.`);
       const clean = raw.replace(/```json|```/g,"").trim();
       const s=clean.indexOf("{"), e=clean.lastIndexOf("}");
       setWarmResult(JSON.parse(clean.slice(s,e+1)));
-    } catch { setWarmError("Something went wrong — please try again."); }
+    } catch(err) { setWarmError(err.message || "Something went wrong — please try again."); }
     setWarmLoading(false);
   }
 
   // ── Context textarea style ──
   const ctxStyle = { resize:"vertical", lineHeight:1.6, background:"var(--color-background-primary)", border:"1.5px solid var(--color-border-secondary)", borderRadius:8, padding:"9px 12px", fontSize:14, fontFamily:"var(--font-sans)", color:"var(--color-text-primary)", outline:"none", width:"100%", boxSizing:"border-box", transition:"border-color 0.15s ease, box-shadow 0.15s ease" };
+
+  if (!unlocked) return <PinScreen onUnlock={() => setUnlocked(true)} />;
 
   return (
     <div style={{ fontFamily:"var(--font-sans)", maxWidth:940, margin:"0 auto", padding:"1.5rem 1rem" }}>
