@@ -60,9 +60,9 @@ create table events (
 
 ### Local (`.env.local` — gitignored, never commit)
 ```
-REACT_APP_SUPABASE_URL=https://uwxkoetlxmuhryrhshfh.supabase.co
-REACT_APP_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3eGtvZXRseG11aHJ5cmhzaGZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNDE0NDUsImV4cCI6MjA5MTkxNzQ0NX0.0rbWpiOWtUhyQkS_ff1--slJWmAfF3dJTJPgGyUqSTs
-ANTHROPIC_API_KEY=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
+REACT_APP_SUPABASE_URL=###
+REACT_APP_SUPABASE_ANON_KEY=###
+ANTHROPIC_API_KEY=###
 ```
 
 ### Vercel dashboard (⚠️ MUST be added manually — not auto-deployed)
