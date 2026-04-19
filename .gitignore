@@ -19,3 +19,7 @@ yarn-error.log*
 # editor
 .DS_Store
 .vscode/
+
+# Claude Code machine-specific files
+*-Aqeel-Desktop.md
+src/.claude/
