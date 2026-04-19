@@ -146,6 +146,29 @@ return (d.content || []).filter(b => b.type === "text").map(b => b.text).join("\
 | `'useRef' is defined but never used` | `CI=true` promotes ESLint warnings to errors in Vercel | Removed `useRef` from import in `App.jsx` |
 | `POST /api/agent → 404` | `api/agent.js` used `export default` (ES module) but no `"type": "module"` in `package.json` | Changed to `module.exports = ...` (CommonJS) |
 
+### Session 3 — Managed Agents deep-dive + knowledge file
+
+**Studied full Managed Agents documentation:**
+- overview, quickstart, agent-setup, environments, sessions, events-and-streaming
+- Analysed n8n workflow diagram showing stateful chat integration pattern
+- Studied database schema screenshot showing `user_session_id` ↔ `claude_session_id` mapping
+
+**Created `managed-agents-knowledge.md`:**
+- Complete API reference: all endpoints, headers, request/response shapes
+- Step-by-step full session flow (create agent → environment → session → events → stream)
+- n8n workflow pattern documented (session lookup/creation, polling vs streaming)
+- Current architecture comparison vs full session flow
+- Security rules reiterated
+- No confidential values in the file
+
+**Updated `CLAUDE.md`:**
+- Added explicit "Confidentiality — CRITICAL" section
+- Lists what must never appear in committed files (API keys, agent IDs, env IDs, session IDs, Supabase URL/key)
+- States that secrets belong only in `.env.local` and the Vercel dashboard
+- Removed hardcoded agent IDs from "Agent IDs" section — replaced with env var names
+
+---
+
 ### Session 2 — Managed Agents docs review + API fix
 
 **Read all Managed Agents docs:**

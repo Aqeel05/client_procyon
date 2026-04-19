@@ -17,8 +17,9 @@ Sales team manages clients and trade events, then generates outreach emails via 
 - **Deployment**: Vercel (`client-procyon.vercel.app`)
 
 ## Agent IDs
-- Cold Email Agent: `agent_011CZwxfXbUhcTxgcg35dFL4`
-- Warm Email Agent: `agent_011Ca1x9MAbi3XMWR6pUsv9C`
+Agent IDs are stored in `.env.local` and the Vercel dashboard only — never committed.
+- Cold Email Agent ID → `COLD_AGENT_ID` env var
+- Warm Email Agent ID → `WARM_AGENT_ID` env var
 
 ## Key files
 | File | Purpose |
@@ -39,3 +40,19 @@ Sales team manages clients and trade events, then generates outreach emails via 
 - Keep `src/App.jsx` ESLint-clean — Vercel builds with `CI=true` (warnings → errors)
 - Never create `*.js` files in `src/` that could shadow `*.jsx` files (CRA resolves `.js` first)
 - Update `memory.md` at the end of every session with new decisions, fixes, and pending work
+
+## Confidentiality — CRITICAL
+**Never put the following in any committed file** (including `CLAUDE.md`, `memory.md`, or any `.md`/`.js`/`.jsx` file tracked by git):
+- API keys (Anthropic, Supabase, or any other)
+- Agent IDs (`agent_...`)
+- Environment IDs (`env_...`)
+- Session IDs (`sesn_...`)
+- Supabase project URL or anon key
+- Any other credential, token, or secret
+
+All secrets belong exclusively in:
+- `.env.local` — gitignored, local development only
+- Vercel dashboard Environment Variables — never auto-deployed from code
+- A secure secrets manager if introduced later
+
+When documenting the project, reference secrets by their **variable name** (e.g., `ANTHROPIC_API_KEY`), never their actual value.
