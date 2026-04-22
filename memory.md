@@ -169,6 +169,17 @@ return (d.content || []).filter(b => b.type === "text").map(b => b.text).join("\
 
 ---
 
+### Session 4 — RLS migration
+
+**Fixed Supabase `rls_disabled_in_public` lint errors:**
+- Created `supabase/migrations/20260422000000_enable_rls.sql`
+- SQL enables RLS on `public.clients` and `public.events`
+- Adds `FOR ALL … USING (true) WITH CHECK (true)` policies for `anon` + `authenticated` roles
+- Preserves existing behaviour (no user-level auth, shared team data)
+- Migration must be applied manually in the Supabase SQL editor (no service-role key available in this env)
+
+---
+
 ### Session 2 — Managed Agents docs review + API fix
 
 **Read all Managed Agents docs:**
@@ -192,6 +203,7 @@ return (d.content || []).filter(b => b.type === "text").map(b => b.text).join("\
 | `Module not found: web-vitals` | Stale `src/index.js` shadowing `src/index.jsx` | ✅ Fixed |
 | ESLint `useRef unused` error | `CI=true` in Vercel build | ✅ Fixed |
 | Git merge conflict on `git pull` | Remote had files that would be overwritten | ✅ Resolved via stash/pop |
+| RLS disabled on `public.clients` and `public.events` | Tables exposed to PostgREST without RLS enabled (Supabase lint error `rls_disabled_in_public`) | ⚠️ Migration written — user must run SQL in Supabase dashboard |
 
 ---
 
@@ -209,6 +221,27 @@ Add all three vars (Production + Preview + Development):
 - `REACT_APP_SUPABASE_ANON_KEY` — the anon key (see `.env.local`)
 
 After adding, **redeploy** from the Vercel dashboard.
+
+### ⚠️ ACTION REQUIRED — Enable RLS on Supabase tables
+
+Run the following SQL in the **Supabase SQL editor** (Dashboard → SQL Editor → New query):
+
+```sql
+ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.events  ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "anon_all_clients"
+  ON public.clients FOR ALL TO anon, authenticated
+  USING (true) WITH CHECK (true);
+
+CREATE POLICY "anon_all_events"
+  ON public.events FOR ALL TO anon, authenticated
+  USING (true) WITH CHECK (true);
+```
+
+Migration file also committed at: `supabase/migrations/20260422000000_enable_rls.sql`
+
+This enables RLS (fixing the `rls_disabled_in_public` lint errors) while preserving full anon access (no auth in this app — intentional).
 
 ### Pending / nice-to-have
 
